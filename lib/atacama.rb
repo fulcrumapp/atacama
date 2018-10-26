@@ -1,5 +1,7 @@
 require 'atacama/version'
+require 'atacama/contract'
 
 module Atacama
-  # Your code goes here...
+  ArgumentError = Class.new(StandardError)
+  TypeError = Class.new(StandardError)
 end
