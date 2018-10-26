@@ -24,7 +24,7 @@ module Atacama
     attr_reader :options, :kwargs
 
     def detect_invalid_keywords!
-      raise ArgumentError, "#{invalid_keys} are not valid options" if invalid_keys.any?
+      raise ArgumentError, "#{invalid_keys} are not valid options #{options.keys}" if invalid_keys.any?
     end
 
     def detect_invalid_types!

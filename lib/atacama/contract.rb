@@ -38,5 +38,9 @@ module Atacama
     def initialize(context: {})
       @context = Context.new(context)
     end
+
+    def call
+      self
+    end
   end
 end

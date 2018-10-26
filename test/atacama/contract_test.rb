@@ -21,7 +21,7 @@ describe Atacama::Contract do
 
   it 'makes the options available as local methods' do
     instance = ContractTestClass.new(context: valid_attributes)
-    assert_equal instance.params, {}
+    assert_equal instance.params, valid_attributes[:params]
   end
 
   it 'throws if a parameter is missing' do
