@@ -6,20 +6,37 @@ class ContractTestClass < Atacama::Contract
   option :params, type: Types::Strict::Hash
 
   def call
-    self
+    :success
   end
 end
 
 describe Atacama::Contract do
-  it 'adds an option definition to the schema' do
-    refute_equal 0, ContractTestClass.options.length
+  let(:valid_attributes) do
+    { params: {} }
   end
 
-  it 'validates that that the parameter exists' do
-    assert_raises(Atacama::ArgumentError) { ContractTestClass.call }
+  it 'executes the call block given all conditions are met' do
+    assert_equal :success, ContractTestClass.call(**valid_attributes)
   end
 
   it 'makes the options available as local methods' do
-    assert_equal Hash.new, ContractTestClass.call(params: {}).params
+    instance = ContractTestClass.new(context: valid_attributes)
+    assert_equal instance.params, {}
+  end
+
+  it 'throws if a parameter is missing' do
+    assert_raises(Atacama::ArgumentError) { ContractTestClass.call }
+  end
+
+  it 'throws if a parameter is of an invalid type' do
+    assert_raises(Atacama::TypeError) do
+      ContractTestClass.call(params: [])
+    end
+  end
+
+  it 'throws if an unknown argument is passed' do
+    assert_raises(Atacama::ArgumentError) do
+      ContractTestClass.call(params: {}, invalid: true)
+    end
   end
 end

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-require 'atacama/parameter'
+require 'test_helper'
+require 'atacama/contract/parameter'
 
 describe Atacama::Parameter do
   it 'has visible getters for the properties' do
@@ -16,6 +17,9 @@ describe Atacama::Parameter do
   it 'raises an exception if the type specified is not present' do
     type = Atacama::Contract::Types::Strict::String
     param = Atacama::Parameter.new(name: :test, type: type)
+
     assert_raises(Atacama::TypeError) { param.valid?(true) }
+
+    assert param.valid?('Hello')
   end
 end

@@ -10,9 +10,14 @@ module Atacama
       @type = type
     end
 
+    # Determine the validity of a value for an optionally given type. Raises a type
+    # error on failure.
+    # @raise [Atacama::TypeError]
+    # @returns Boolean
     def valid?(value)
       return true if type.nil?
       type[value]
+      true
     rescue Dry::Types::ConstraintError => error
       raise TypeError, error.message
     end
