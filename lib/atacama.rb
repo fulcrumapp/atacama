@@ -1,4 +1,4 @@
-require "atacama/version"
+require 'atacama/version'
 
 module Atacama
   # Your code goes here...
