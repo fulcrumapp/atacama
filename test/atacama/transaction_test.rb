@@ -18,15 +18,26 @@ class TransactionYieldingStepTestClass < Atacama::Step
 end
 
 class TransactionTestClass < Atacama::Transaction
+  ProcStep = lambda do
+    Option(lambda_value: 'lambda')
+  end
+
   step :around, with: TransactionYieldingStepTestClass do
     step :inner, with: TransactionStepTestClass
+    step :on_self
+  end
+
+  step :proc, with: ProcStep
+
+  def on_self
+    Option(returned_on_self: true)
   end
 end
 
 describe Atacama::Transaction do
   describe 'step' do
     it 'allows defining a step in the transformation' do
-      assert_equal 1, TransactionTestClass.steps.count
+      assert_equal 2, TransactionTestClass.steps.count
     end
 
     it 'supports nesting steps do' do
@@ -41,6 +52,7 @@ describe Atacama::Transaction do
       result = TransactionTestClass.call
       assert_operator result.context.duration, :>, 0
       assert_equal 'executed', result.context.inner_value
+      assert result.context.returned_on_self
     end
 
     it 'allows injecting of steps' do

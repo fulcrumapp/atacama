@@ -4,6 +4,8 @@ require 'atacama/contract'
 
 module Atacama
   class Transaction < Contract
+    include Values::Methods
+
     # Struct object holding the step definition
     class Definition < Contract
       option :name, type: Types::Strict::Symbol
@@ -25,6 +27,7 @@ module Atacama
       # @param name [Symbol] a unique name for a step
       def step(name, **kwargs, &block)
         kwargs[:yielding] = block_given? ? Class.new(self, &block) : nil
+        kwargs[:with] ||= nil
         steps.push Definition.call(name: name, **kwargs)
       end
     end
@@ -54,7 +57,7 @@ module Atacama
     end
 
     def evaluate(step)
-      instance = override_for(step) || step.with.new(context: context)
+      instance = callable_for(step)
 
       if step.yielding?
         instance.call { execute(step.yielding.steps) }
@@ -63,10 +66,28 @@ module Atacama
       end
     end
 
+    def callable_for(step)
+      override_for(step) ||
+        method_for(step) ||
+        proc_from(step) ||
+        step.with.new(context: context)
+    end
+
+    def proc_from(step)
+      callable = step.with
+      return nil unless callable.is_a? Proc
+      -> { instance_exec(&callable) }
+    end
+
+    def method_for(step)
+      return if step.with
+      method(step.name)
+    end
+
     def override_for(step)
-      override = @overrides[step.name]
-      return if override.nil?
-      override
+      callable = @overrides[step.name]
+      return if callable.nil?
+      callable
     end
   end
 end

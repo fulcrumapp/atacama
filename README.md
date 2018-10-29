@@ -59,7 +59,7 @@ class UpdateUser < Atacama::Transformer
   option :model, type: Types::Instance(User)
   option :attributes, type: Types::Strict::Hash
 
-  step duration: Duration do
+  step :duration, with: Duration do
     step :find, with: UserFetcher
     step :save
   end
