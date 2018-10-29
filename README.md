@@ -1,8 +1,7 @@
 # Atacama
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/atacama`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+Atacama aims to attack the issue of Service Object patterns in a way that focuses on reusing logic
+and ease of testability.
 
 ## Installation
 
@@ -22,7 +21,71 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+The basic object is `Contract`. It enforces type contracts by utilizing `dry-types`.
+
+```
+class UserFetcher < Atacama::Contract
+  option :id, Types::Strict::Number.gt(0)
+
+  def call
+    User.find(id)
+  end
+end
+
+UserFetcher.call(id: 1)
+```
+
+With the use of two classes, we can compose together multiple Contracts to yield a pipeline
+of changes to execute.
+
+```
+class UserFetcher < Atacama::Step
+  option :id, type: Types::Strict::Number.gt(0)
+
+  def call
+    Option(model: User.find(id))
+  end
+end
+
+class Duration < Atacama::Step
+  def call
+    start = Time.now
+    yield
+    $redis.avg('duration', Time.now - start)
+  end
+end
+
+class UpdateUser < Atacama::Transformer
+  option :model, type: Types::Instance(User)
+  option :attributes, type: Types::Strict::Hash
+
+  step duration: Duration do
+    step :find, with: UserFetcher
+    step :save
+  end
+
+  private
+
+  def save
+    context.model.update_attributes(attributes)
+  end
+end
+
+UpdateUser.call(id: 1, attributes: {
+  email: 'hello@world.com'
+})
+```
+
+Any step can be mocked out without the need for a third party library. Just pass any object that
+responds to `#call` in the class initializer.
+
+```
+UpdateUser.new(steps: {
+  save: lambda do |**|
+    puts "skipping save"
+  end
+})
+```
 
 ## Development
 
@@ -32,4 +95,4 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/atacama.
+Bug reports and pull requests are welcome on GitHub at https://github.com/fulcrumapp/atacama.
