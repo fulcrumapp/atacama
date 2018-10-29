@@ -57,25 +57,21 @@ module Atacama
     end
 
     def evaluate(step)
-      instance = callable_for(step)
+      callable = override_for(step) ||
+                 method_for(step) ||
+                 proc_for(step) ||
+                 instance_for(step)
 
       if step.yielding?
-        instance.call { execute(step.yielding.steps) }
+        callable.call { execute(step.yielding.steps) }
       else
-        instance.call
+        callable.call
       end
     end
 
-    def callable_for(step)
-      override_for(step) ||
-        method_for(step) ||
-        proc_from(step) ||
-        step.with.new(context: context)
-    end
-
-    def proc_from(step)
+    def proc_for(step)
       callable = step.with
-      return nil unless callable.is_a? Proc
+      return unless callable.is_a? Proc
       -> { instance_exec(&callable) }
     end
 
@@ -88,6 +84,10 @@ module Atacama
       callable = @overrides[step.name]
       return if callable.nil?
       callable
+    end
+
+    def instance_for(step)
+      step.with.new(context: context)
     end
   end
 end
