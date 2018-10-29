@@ -12,6 +12,8 @@ module Atacama
     # The type namespace to interact with DRY::Types
     module Types
       include Dry::Types.module
+
+      ContextOrHash = Strict::Hash | Instance(Context)
     end
 
     class << self
@@ -19,6 +21,8 @@ module Atacama
         @options ||= {}
       end
 
+      # Define an initializer value.
+      # @param [Symbol] name of the argument
       def option(name, **kwargs)
         options[name] = Parameter.new(name: name, **kwargs)
 
@@ -27,16 +31,17 @@ module Atacama
         end
       end
 
-      def call(**kwargs)
-        Validator.call(options: options, kwargs: kwargs)
-        new(context: kwargs).call
+      def call(context = {})
+        new(context: context).call
       end
     end
 
     attr_reader :context
 
-    def initialize(context: {})
-      @context = Context.new(context)
+    def initialize(context: {}, **)
+      context = Types::ContextOrHash[context]
+      @context = context.is_a?(Context) ? context : Context.new(context)
+      Validator.call(options: self.class.options, context: @context)
     end
 
     def call

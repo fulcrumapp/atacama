@@ -24,6 +24,12 @@ describe Atacama::Contract do
     assert_equal instance.params, valid_attributes[:params]
   end
 
+  it 'allows passing an existing context' do
+    context = Atacama::Context.new(params: {})
+    instance = ContractTestClass.new(context: context)
+    assert_equal context, instance.context
+  end
+
   it 'throws if a parameter is missing' do
     assert_raises(Atacama::ArgumentError) { ContractTestClass.call }
   end
@@ -31,12 +37,6 @@ describe Atacama::Contract do
   it 'throws if a parameter is of an invalid type' do
     assert_raises(Atacama::TypeError) do
       ContractTestClass.call(params: [])
-    end
-  end
-
-  it 'throws if an unknown argument is passed' do
-    assert_raises(Atacama::ArgumentError) do
-      ContractTestClass.call(params: {}, invalid: true)
     end
   end
 end

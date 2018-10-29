@@ -3,39 +3,30 @@
 module Atacama
   # Validation execution class for a given set of parameters and options.
   class Validator
-    def self.call(**kwargs)
-      new(**kwargs).call
+    def self.call(**context)
+      new(**context).call
     end
 
     # @param options [Hash] options schema
-    # @param kwargs [Hash] keyword arguments to validate
-    def initialize(options:, kwargs:)
+    # @param context [Atacama::Context] keyword arguments to validate
+    def initialize(options:, context:)
       @options = options
-      @kwargs = kwargs
+      @context = context
     end
 
     def call
-      detect_invalid_keywords!
       detect_invalid_types!
     end
 
     private
 
-    attr_reader :options, :kwargs
-
-    def detect_invalid_keywords!
-      raise ArgumentError, "#{invalid_keys} are not valid options #{options.keys}" if invalid_keys.any?
-    end
+    attr_reader :options, :context
 
     def detect_invalid_types!
       options.each do |(key, parameter)|
-        raise ArgumentError unless kwargs.key?(key)
-        parameter.valid? kwargs[key]
+        raise ArgumentError, "option not found: #{key}" unless context.key?(key)
+        parameter.valid? context[key]
       end
-    end
-
-    def invalid_keys
-      kwargs.keys - options.keys
     end
   end
 end

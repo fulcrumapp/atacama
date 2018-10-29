@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Atacama
-  # A description of the signature of the parameter being validated by the contract
+  # A description of the signature of the parameter being validated
   class Parameter
     attr_reader :name, :type
 
@@ -10,8 +10,8 @@ module Atacama
       @type = type
     end
 
-    # Determine the validity of a value for an optionally given type. Raises a type
-    # error on failure.
+    # Determine the validity of a value for an optionally given type. Raises a
+    # type error on failure.
     # @raise [Atacama::TypeError]
     # @returns Boolean
     def valid?(value)
