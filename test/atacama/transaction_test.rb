@@ -15,7 +15,8 @@ class TestBenchmarking < Atacama::Step
   def call
     start = Time.now
     yield
-    Option(duration: Time.now - start)
+    duration = Time.now - start
+    raise 'Reversing algorithm took too long to complete' if duration > 0.5
   end
 end
 
@@ -57,8 +58,13 @@ describe Atacama::Transaction do
   describe 'execution' do
     it 'executes the pipeline, passing through options until the final return value' do
       result = TransactionTestClass.call(sentence: 'Hello World!')
-      assert_operator result.transaction.duration, :>, 0
       assert_equal 'World! Hello', result.value
+    end
+
+    it 'mutates the context of the transaction as it progresses' do
+      result = TransactionTestClass.call(sentence: 'Hello World!')
+      refute_nil result.transaction.words
+      refute_nil result.transaction.sentence
     end
 
     it 'allows injecting of steps to faciliate mocking' do

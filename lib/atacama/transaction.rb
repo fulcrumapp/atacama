@@ -9,9 +9,8 @@ module Atacama
     include Values::Methods
 
     class Result < Contract
-      option :success, type: Types::Boolean
       option :value, type: Types::Any
-      option :transaction, type: Types::Any
+      option :transaction, type: Types.Instance(Context)
     end
 
     class << self
@@ -43,11 +42,7 @@ module Atacama
 
       raise MissingReturn, "Return value from #{self.class} missing, received: #{value.inspect}" unless value.is_a? Values::Return
 
-      Result.call({
-        success: true,
-        value: value.value,
-        transaction: context
-      })
+      Result.call(value: value.value, transaction: context)
     end
 
     private
