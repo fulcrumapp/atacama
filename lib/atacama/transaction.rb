@@ -41,9 +41,10 @@ module Atacama
         exception.value
       end
 
-      raise MissingReturn, "Return value from #{self.class} missing" unless value.is_a? Values::Return
+      raise MissingReturn, "Return value from #{self.class} missing, received: #{value.inspect}" unless value.is_a? Values::Return
 
       Result.call({
+        success: true,
         value: value.value,
         transaction: context
       })
@@ -87,7 +88,8 @@ module Atacama
     end
 
     def evaluate_proc(step)
-      instance_eval(&step.with)
+      callable = step.with
+      instance_exec(&callable)
     end
 
     def evaluate_instance(step)

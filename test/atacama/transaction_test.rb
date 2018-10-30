@@ -3,13 +3,15 @@
 require 'test_helper'
 require 'atacama/transaction'
 
-class TransactionStepTestClass < Atacama::Step
+class TestSplitter < Atacama::Step
+  option :sentence, type: Types::Strict::String
+
   def call
-    Option(inner_value: 'executed')
+    Option(words: sentence.split(' '))
   end
 end
 
-class TransactionYieldingStepTestClass < Atacama::Step
+class TestBenchmarking < Atacama::Step
   def call
     start = Time.now
     yield
@@ -18,25 +20,22 @@ class TransactionYieldingStepTestClass < Atacama::Step
 end
 
 class TransactionTestClass < Atacama::Transaction
-  ProcStep = proc do
-    Option(lambda_value: 'lambda')
+  option :sentence, type: Types::Strict::String
+
+  Joiner = proc do
+    Option(sentence: context.words.join(' '))
   end
 
-  step :around, with: TransactionYieldingStepTestClass do
-    step :inner, with: TransactionStepTestClass
-    step :on_self
+  step :benchmark, with: TestBenchmarking do
+    step :splitter, with: TestSplitter
+    step :reverser
+    step :joiner, with: Joiner
   end
 
-  step :proc, with: ProcStep
+  step :finally, with: -> { Return(context.sentence) }
 
-  step :finally
-
-  def on_self
-    Option(returned_on_self: true)
-  end
-
-  def finally
-    Return(self)
+  def reverser
+    Option(words: context.words.reverse)
   end
 end
 
@@ -55,26 +54,27 @@ describe Atacama::Transaction do
 
   describe 'execution' do
     it 'takes option values and injects them in to the context' do
-      result = TransactionTestClass.call
+      result = TransactionTestClass.call(sentence: 'Hello World!')
       assert_operator result.transaction.duration, :>, 0
-      assert_equal 'executed', result.transaction.inner_value
-      assert result.transaction.returned_on_self
     end
 
-    it 'allows injecting of steps' do
+    it 'allows injecting of steps to faciliate mocking' do
       called = false
 
-      TransactionTestClass.new(steps: {
-        inner: lambda { called = true }
-      }).call
+      result = TransactionTestClass.new(
+        steps: { reverser: -> { called = true } },
+        context: { sentence: 'Hello World!' }
+      ).call
 
       assert called, 'the mock object should have been called'
+      assert_equal 'Hello World!', result.transaction.sentence
     end
 
     it 'allows early returns with the Return operator' do
-      result = TransactionTestClass.new(steps: {
-        inner: lambda { Return(:test) }
-      }).call
+      result = TransactionTestClass.new(
+        steps: { splitter: -> { Return(:test) } },
+        context: { sentence: 'Hello World!' }
+      ).call
 
       assert_equal :test, result.value
     end
