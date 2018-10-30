@@ -18,7 +18,7 @@ class TransactionYieldingStepTestClass < Atacama::Step
 end
 
 class TransactionTestClass < Atacama::Transaction
-  ProcStep = lambda do
+  ProcStep = proc do
     Option(lambda_value: 'lambda')
   end
 
@@ -29,15 +29,21 @@ class TransactionTestClass < Atacama::Transaction
 
   step :proc, with: ProcStep
 
+  step :finally
+
   def on_self
     Option(returned_on_self: true)
+  end
+
+  def finally
+    Return(self)
   end
 end
 
 describe Atacama::Transaction do
   describe 'step' do
     it 'allows defining a step in the transformation' do
-      assert_equal 2, TransactionTestClass.steps.count
+      assert_operator 0, :<, TransactionTestClass.steps.count
     end
 
     it 'supports nesting steps do' do
@@ -50,19 +56,27 @@ describe Atacama::Transaction do
   describe 'execution' do
     it 'takes option values and injects them in to the context' do
       result = TransactionTestClass.call
-      assert_operator result.context.duration, :>, 0
-      assert_equal 'executed', result.context.inner_value
-      assert result.context.returned_on_self
+      assert_operator result.transaction.duration, :>, 0
+      assert_equal 'executed', result.transaction.inner_value
+      assert result.transaction.returned_on_self
     end
 
     it 'allows injecting of steps' do
       called = false
 
       TransactionTestClass.new(steps: {
-        inner: lambda { |**| called = true }
+        inner: lambda { called = true }
       }).call
 
       assert called, 'the mock object should have been called'
+    end
+
+    it 'allows early returns with the Return operator' do
+      result = TransactionTestClass.new(steps: {
+        inner: lambda { Return(:test) }
+      }).call
+
+      assert_equal :test, result.value
     end
   end
 end

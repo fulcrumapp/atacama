@@ -15,7 +15,7 @@ module Atacama
       end
 
       def Return(value)
-        Values::Return.call(value: value)
+        raise HaltExecution.new(Values::Return.call(value: value))
       end
     end
 

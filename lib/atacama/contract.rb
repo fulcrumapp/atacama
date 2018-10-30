@@ -9,12 +9,16 @@ require 'atacama/contract/context'
 module Atacama
   # This class enables a DSL for creating a contract for the initializer
   class Contract
+    RESERVED_KEYS = %i[call initialize context].freeze
+
     # The type namespace to interact with DRY::Types
     module Types
       include Dry::Types.module
-
+      Boolean = Types::True | Types::False
       ContextOrHash = Strict::Hash | Instance(Context)
     end
+
+    NameInterface = Types::Strict::Symbol.constrained(excluded_from: RESERVED_KEYS)
 
     class << self
       def options
@@ -24,11 +28,13 @@ module Atacama
       # Define an initializer value.
       # @param [Symbol] name of the argument
       def option(name, **kwargs)
+        # Validate it's a symbol and not reserved
+        name = NameInterface[name]
+
         options[name] = Parameter.new(name: name, **kwargs)
 
-        define_method name do
-          context[name]
-        end
+        define_method(name) { @context[name] }
+        define_method("#{name}?") { !!@context[name] }
       end
 
       def call(context = {})
@@ -39,7 +45,8 @@ module Atacama
     attr_reader :context
 
     def initialize(context: {}, **)
-      context = Types::ContextOrHash[context]
+      # Validate the type
+      Types::ContextOrHash[context]
       @context = context.is_a?(Context) ? context : Context.new(context)
       Validator.call(options: self.class.options, context: @context)
     end

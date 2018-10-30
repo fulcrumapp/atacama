@@ -1,20 +1,17 @@
 # frozen_string_literal: true
 
 require 'atacama/contract'
+require 'atacama/transaction/halt_execution'
+require 'atacama/transaction/definition'
 
 module Atacama
   class Transaction < Contract
     include Values::Methods
 
-    # Struct object holding the step definition
-    class Definition < Contract
-      option :name, type: Types::Strict::Symbol
-      option :with, type: Types::Any.optional
-      option :yielding, type: Types::Any.optional
-
-      def yielding?
-        !!yielding
-      end
+    class Result < Contract
+      option :success, type: Types::Boolean
+      option :value, type: Types::Any
+      option :transaction, type: Types::Any
     end
 
     class << self
@@ -38,56 +35,66 @@ module Atacama
     end
 
     def call
-      execute(self.class.steps)
-      self
+      value = begin
+        execute(self.class.steps)
+      rescue HaltExecution => exception
+        exception.value
+      end
+
+      raise MissingReturn, "Return value from #{self.class} missing" unless value.is_a? Values::Return
+
+      Result.call({
+        success: true,
+        value: value.value,
+        transaction: context
+      })
     end
 
     private
 
     def execute(steps)
       steps.each do |step|
-        result = evaluate(step)
-
-        if result.is_a? Values::Option
-          context.merge!(result.value)
-        elsif result.is_a? Values::Return
-          # Halt execution and return the inner value.
+        evaluate(step).tap do |result|
+          context.merge!(result.value) if result.is_a? Values::Option
         end
       end
     end
 
     def evaluate(step)
-      callable = override_for(step) ||
-                 method_for(step) ||
-                 proc_for(step) ||
-                 instance_for(step)
-
-      if step.yielding?
-        callable.call { execute(step.yielding.steps) }
+      if overridden?(step)
+        evaluate_override(step)
+      elsif step.method_invocation?
+        evaluate_method(step)
+      elsif step.proc_invocation?
+        evaluate_proc(step)
       else
-        callable.call
+        evaluate_instance(step)
       end
     end
 
-    def proc_for(step)
-      callable = step.with
-      return unless callable.is_a? Proc
-      -> { instance_exec(&callable) }
+    def overridden?(step)
+      @overrides.key?(step.name)
     end
 
-    def method_for(step)
-      return if step.with
-      method(step.name)
-    end
-
-    def override_for(step)
+    def evaluate_override(step)
       callable = @overrides[step.name]
-      return if callable.nil?
-      callable
+      instance_exec(&callable)
     end
 
-    def instance_for(step)
-      step.with.new(context: context)
+    def evaluate_method(step)
+      send(step.name) do
+        execute(step.yielding.steps)
+      end
+    end
+
+    def evaluate_proc(step)
+      instance_eval(&step.with)
+    end
+
+    def evaluate_instance(step)
+      step.with.new(context: context).call do
+        execute(step.yielding.steps)
+      end
     end
   end
 end
