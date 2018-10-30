@@ -34,6 +34,8 @@ class TransactionTestClass < Atacama::Transaction
 
   step :finally, with: -> { Return(context.sentence) }
 
+  private
+
   def reverser
     Option(words: context.words.reverse)
   end
@@ -53,9 +55,10 @@ describe Atacama::Transaction do
   end
 
   describe 'execution' do
-    it 'takes option values and injects them in to the context' do
+    it 'executes the pipeline, passing through options until the final return value' do
       result = TransactionTestClass.call(sentence: 'Hello World!')
       assert_operator result.transaction.duration, :>, 0
+      assert_equal 'World! Hello', result.value
     end
 
     it 'allows injecting of steps to faciliate mocking' do
