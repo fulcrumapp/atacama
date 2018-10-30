@@ -44,7 +44,6 @@ module Atacama
       raise MissingReturn, "Return value from #{self.class} missing" unless value.is_a? Values::Return
 
       Result.call({
-        success: true,
         value: value.value,
         transaction: context
       })
