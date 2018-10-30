@@ -1,4 +1,8 @@
+
+
 # Atacama
+
+[![Build Status](https://travis-ci.org/fulcrumapp/atacama.svg?branch=master)](https://travis-ci.org/fulcrumapp/atacama)
 
 Atacama aims to attack the issue of Service Object patterns in a way that focuses on reusing logic
 and ease of testability.
