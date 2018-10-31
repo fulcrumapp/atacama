@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'dry-types'
-
 require 'atacama/contract/parameter'
 require 'atacama/contract/validator'
 require 'atacama/contract/context'

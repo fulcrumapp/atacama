@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'atacama/contract'
+require 'atacama/values'
 require 'atacama/transaction/halt_execution'
 require 'atacama/transaction/definition'
 

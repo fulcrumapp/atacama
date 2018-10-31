@@ -1,3 +1,4 @@
+require 'dry-types'
 require 'atacama/version'
 require 'atacama/contract'
 require 'atacama/transaction'
