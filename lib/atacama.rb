@@ -1,5 +1,7 @@
 require 'atacama/version'
 require 'atacama/contract'
+require 'atacama/transaction'
+require 'atacama/step'
 
 module Atacama
   ArgumentError = Class.new(StandardError)

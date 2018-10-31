@@ -7,16 +7,16 @@ require 'atacama/contract/validator'
 require 'atacama/contract/context'
 
 module Atacama
+  # The type namespace to interact with DRY::Types
+  module Types
+    include Dry::Types.module
+    Boolean = Types::True | Types::False
+    ContextOrHash = Strict::Hash | Instance(Context)
+  end
+
   # This class enables a DSL for creating a contract for the initializer
   class Contract
     RESERVED_KEYS = %i[call initialize context].freeze
-
-    # The type namespace to interact with DRY::Types
-    module Types
-      include Dry::Types.module
-      Boolean = Types::True | Types::False
-      ContextOrHash = Strict::Hash | Instance(Context)
-    end
 
     NameInterface = Types::Strict::Symbol.constrained(excluded_from: RESERVED_KEYS)
 

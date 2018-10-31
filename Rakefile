@@ -9,6 +9,6 @@ end
 
 task default: :test
 
-task :watch do
-  exec 'docker run -v `pwd`:/app:cached -it spatialnetworks/alpine bash -l -c "gem install rerun && bundle && rerun -x rake"'
+task :bash do
+  exec 'docker run -v `pwd`:/app:cached -it spatialnetworks/alpine bash -l -c "gem install rerun && bundle && bash"'
 end

@@ -9,9 +9,9 @@ Gem::Specification.new do |spec|
   spec.version       = Atacama::VERSION
   spec.authors       = ['Tyler Johnston']
   spec.email         = ['tyler@spatialnetworks.com']
-
+  spec.license       = 'MIT'
   spec.summary       = 'DRY Service Objects'
-  spec.description   = 'DRY Service Objects'
+  spec.description   = 'Service objects using composable contracts'
   spec.homepage      = 'https://github.com/fulcrumapp/atacama'
 
   # Specify which files should be added to the gem when it is released.
@@ -23,7 +23,7 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'dry-types'
+  spec.add_dependency 'dry-types', '~> 0.13.2'
 
   spec.add_development_dependency 'bundler', '~> 1.16'
   spec.add_development_dependency 'minitest', '~> 5.0'
