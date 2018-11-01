@@ -7,10 +7,6 @@ module Atacama
     option :with, type: Types::Any.optional
     option :yielding, type: Types::Any.optional
 
-    def yielding?
-      !!yielding
-    end
-
     def proc_invocation?
       with.is_a? Proc
     end

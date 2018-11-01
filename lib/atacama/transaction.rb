@@ -51,6 +51,7 @@ module Atacama
     def execute(steps)
       steps.each do |step|
         evaluate(step).tap do |result|
+          raise HaltExecution.new(result) if result.is_a? Values::Return
           context.merge!(result.value) if result.is_a? Values::Option
         end
       end

@@ -23,8 +23,6 @@ describe Atacama::Step do
   end
 
   it 'can return a Return value object' do
-    assert_raises Atacama::HaltExecution do
-      StepReturningReturnFake.call
-    end
+    assert_equal true, StepReturningReturnFake.call.value
   end
 end

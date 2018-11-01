@@ -1,13 +1,13 @@
 PATH
   remote: .
   specs:
-    atacama (0.1.0)
+    atacama (0.1.1)
       dry-types (~> 0.13.2)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    concurrent-ruby (1.1.0)
+    concurrent-ruby (1.0.5)
     dry-configurable (0.7.0)
       concurrent-ruby (~> 1.0)
     dry-container (0.6.0)

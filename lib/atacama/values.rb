@@ -16,7 +16,7 @@ module Atacama
       end
 
       def Return(value)
-        raise HaltExecution.new(Values::Return.call(value: value))
+        Values::Return.call(value: value)
       end
       # rubocop:enable Naming/MethodName
     end
