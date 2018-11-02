@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    atacama (0.1.1)
+    atacama (0.1.2)
       dry-types (~> 0.13.2)
 
 GEM
@@ -41,4 +41,4 @@ DEPENDENCIES
   rake (~> 10.0)
 
 BUNDLED WITH
-   1.16.2
+   1.16.3

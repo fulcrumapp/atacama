@@ -34,6 +34,12 @@ describe Atacama::Contract do
     assert_raises(Atacama::ArgumentError) { ContractTestClass.call }
   end
 
+  it 'allows creating callables with default options' do
+    seed = { foo: 'bar' }
+    instance = ContractTestClass.inject(params: seed).new
+    assert_equal seed, instance.params
+  end
+
   it 'throws if a parameter is of an invalid type' do
     assert_raises(Atacama::TypeError) do
       ContractTestClass.call(params: [])

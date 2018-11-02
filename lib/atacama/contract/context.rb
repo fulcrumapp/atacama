@@ -8,9 +8,8 @@ module Atacama
     alias key? respond_to?
 
     def merge!(hash)
-      hash.each do |(key, value)|
-        self[key] = value
-      end
+      hash.each { |(key, value)| self[key] = value }
+      self
     end
   end
 end

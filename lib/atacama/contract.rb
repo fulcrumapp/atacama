@@ -21,6 +21,14 @@ module Atacama
     ContextInterface = Types::Strict::Hash | Types.Instance(Context)
 
     class << self
+      def injected=(hash)
+        @injected = Types::Strict::Hash[hash]
+      end
+
+      def injected
+        @injected || {}
+      end
+
       def options
         @options ||= {}
       end
@@ -28,8 +36,7 @@ module Atacama
       # Define an initializer value.
       # @param [Symbol] name of the argument
       def option(name, **kwargs)
-        NameInterface[name] # Validate type
-        options[name] = Parameter.new(name: name, **kwargs)
+        options[NameInterface[name]] = Parameter.new(name: name, **kwargs)
 
         define_method(name) { @context[name] }
         define_method("#{name}?") { !!@context[name] }
@@ -38,13 +45,23 @@ module Atacama
       def call(context = {})
         new(context: context).call
       end
+
+      def inject(injected)
+        Class.new(self) do
+          self.injected = injected
+        end
+      end
     end
 
     attr_reader :context
 
     def initialize(context: {}, **)
       ContextInterface[context] # Validate the type
-      @context = context.is_a?(Context) ? context : Context.new(context)
+
+      @context = Context.new(self.class.injected).tap do |ctx|
+        ctx.merge!(context.is_a?(Context) ? context.to_h : context)
+      end
+
       Validator.call(options: self.class.options, context: @context)
     end
 
