@@ -42,6 +42,18 @@ class TransactionTestClass < Atacama::Transaction
   end
 end
 
+class TransactionClassWithInvalidReturn < Atacama::Transaction
+  class InvalidTypeStep < Atacama::Step
+    returns Types::Strict::String
+
+    def call
+      :failure
+    end
+  end
+
+  step :fail, with: InvalidTypeStep
+end
+
 describe Atacama::Transaction do
   describe 'step' do
     it 'allows defining a step in the transformation' do
@@ -56,6 +68,12 @@ describe Atacama::Transaction do
   end
 
   describe 'execution' do
+    it 'fails with a type error if the declared return value is not met' do
+      assert_raises Dry::Types::ConstraintError do
+        TransactionClassWithInvalidReturn.call
+      end
+    end
+
     it 'executes the pipeline, passing through options until the final return value' do
       result = TransactionTestClass.call(sentence: 'Hello World!')
       assert_equal 'World! Hello', result.value

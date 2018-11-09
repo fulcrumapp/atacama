@@ -10,6 +10,10 @@ class StepReturningOptionFake < Atacama::Step
   end
 end
 
+class SomethingElse < Atacama::Step
+  returns StepReturningOptionFake.return_type
+end
+
 class StepReturningReturnFake < Atacama::Step
   def call
     Return(true)

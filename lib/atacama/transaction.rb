@@ -90,9 +90,9 @@ module Atacama
     end
 
     def evaluate_instance(step)
-      step.with.new(context: context).call do
-        execute(step.yielding.steps)
-      end
+      step.with.new(context: context) \
+          .call { execute(step.yielding.steps) }
+          .tap { |result| step.with.validate_return(result) }
     end
   end
 end

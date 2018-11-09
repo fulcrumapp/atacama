@@ -59,6 +59,10 @@ module Atacama
         defined?(@returns) && @returns
       end
 
+      def validate_return(value)
+        return_type && return_type[value]
+      end
+
       # Define an initializer value.
       # @param [Symbol] name of the argument
       def option(name, **kwargs)
@@ -70,7 +74,7 @@ module Atacama
 
       def call(context = {})
         new(context: context).call.tap do |result|
-          return_type && return_type[result]
+          validate_return(result)
         end
       end
 
