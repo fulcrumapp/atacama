@@ -10,7 +10,51 @@ class ContractTestClass < Atacama::Contract
   end
 end
 
+class FailingContractReturnTypeTestClass < Atacama::Contract
+  returns Types::Strict::Symbol
+
+  def call
+    "Hello!"
+  end
+end
+
 describe Atacama::Contract do
+  describe 'custom types' do
+    it 'raises an error for the structure does not match the option names' do
+      type = Atacama::Types.Option(name: Atacama::Types::Strict::String)
+      assert_raises Dry::Types::ConstraintError do
+        value = Atacama::Values::Option.call(value: { name: 1 })
+        type[value]
+      end
+    end
+
+    it 'uses the value from a correct option value' do
+      type = Atacama::Types.Option(name: Atacama::Types::Strict::String)
+      value = Atacama::Values::Option.call(value: { name: 'Hello' })
+      assert_equal value, type[value]
+    end
+
+    it 'raises an error if the Return value is not correct' do
+      type = Atacama::Types.Return(Atacama::Types::Strict::String)
+      assert_raises Dry::Types::ConstraintError do
+        value = Atacama::Values::Return.call(value: 1)
+        type[value]
+      end
+    end
+
+    it 'uses the value from a correct option value' do
+      type = Atacama::Types.Return(Atacama::Types::Strict::String)
+      value = Atacama::Values::Return.call(value: "Hello")
+      assert_equal value, type[value]
+    end
+  end
+
+  it 'explicitly checks the return type' do
+    assert_raises Dry::Types::ConstraintError do
+      FailingContractReturnTypeTestClass.call
+    end
+  end
+
   let(:valid_attributes) do
     { params: {} }
   end

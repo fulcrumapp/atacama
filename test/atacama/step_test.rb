@@ -4,6 +4,7 @@ require 'test_helper'
 require 'atacama/step'
 
 class StepReturningOptionFake < Atacama::Step
+  returns Types.Option(foo: Types::Strict::String)
   def call
     Option(foo: 'bar')
   end

@@ -9,6 +9,23 @@ module Atacama
   module Types
     include Dry::Types.module
     Boolean = Types::True | Types::False
+
+    def self.Option(**map)
+      Instance(Values::Option).constructor do |options|
+        map.each do |key, type|
+          type[options.value[key]]
+        end
+
+        options
+      end
+    end
+
+    def self.Return(type)
+      Instance(Values::Return).constructor do |options|
+        type[options.value]
+        options
+      end
+    end
   end
 
   # This class enables a DSL for creating a contract for the initializer
@@ -26,11 +43,20 @@ module Atacama
       end
 
       def injected
-        @injected || {}
+        # Silences the VM warning about accessing uninitalized ivar
+        defined?(@injected) ? @injected : {}
       end
 
       def options
         @options ||= {}
+      end
+
+      def returns(type)
+        @returns = type
+      end
+
+      def return_type
+        defined?(@returns) && @returns
       end
 
       # Define an initializer value.
@@ -43,7 +69,9 @@ module Atacama
       end
 
       def call(context = {})
-        new(context: context).call
+        new(context: context).call.tap do |result|
+          return_type && return_type[result]
+        end
       end
 
       def inject(injected)
