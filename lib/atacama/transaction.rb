@@ -104,9 +104,11 @@ module Atacama
     end
 
     def return_value
-      @return_value ||
-        (self.class.return_option && context[self.class.return_option]) ||
-        nil
+      @return_value || return_value_from_option || nil
+    end
+
+    def return_value_from_option
+      self.class.return_option && context[self.class.return_option]
     end
   end
 end
