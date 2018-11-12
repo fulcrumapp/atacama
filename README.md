@@ -30,6 +30,7 @@ The basic object is `Contract`. It enforces type contracts by utilizing `dry-typ
 ```
 class UserFetcher < Atacama::Contract
   option :id, Types::Strict::Number.gt(0)
+  returns Types.Instance(User)
 
   def call
     User.find(id)
@@ -45,6 +46,7 @@ of changes to execute.
 ```
 class UserFetcher < Atacama::Step
   option :id, type: Types::Strict::Number.gt(0)
+  returns Types.Option(model: Types.Instance(User))
 
   def call
     Option(model: User.find(id))
@@ -60,8 +62,10 @@ class Duration < Atacama::Step
 end
 
 class UpdateUser < Atacama::Transformer
-  option :model, type: Types::Instance(User)
+  option :model, type: Types.Instance(User)
   option :attributes, type: Types::Strict::Hash
+
+  returns_option :model, Types.Instance(User)
 
   step :duration, with: Duration do
     step :find, with: UserFetcher
