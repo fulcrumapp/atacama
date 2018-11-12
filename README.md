@@ -1,4 +1,7 @@
+*Under Development*
 
+This project is under active development, so be prepared for APIs to just break until we get to a
+more stable version number.
 
 # Atacama
 
