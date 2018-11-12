@@ -50,8 +50,8 @@ module Atacama
         define_method("#{name}?") { !!@context[name] }
       end
 
-      def call(context = {})
-        new(context: context).call.tap do |result|
+      def call(context = {}, &block)
+        new(context: context).call(&block).tap do |result|
           validate_return(result)
         end
       end
