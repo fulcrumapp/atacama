@@ -1,33 +1,11 @@
 # frozen_string_literal: true
 
+require 'atacama/types'
 require 'atacama/contract/parameter'
 require 'atacama/contract/validator'
 require 'atacama/contract/context'
 
 module Atacama
-  # The type namespace to interact with DRY::Types
-  module Types
-    include Dry::Types.module
-    Boolean = Types::True | Types::False
-
-    def self.Option(**map)
-      Instance(Values::Option).constructor do |options|
-        map.each do |key, type|
-          type[options.value[key]]
-        end
-
-        options
-      end
-    end
-
-    def self.Return(type)
-      Instance(Values::Return).constructor do |options|
-        type[options.value]
-        options
-      end
-    end
-  end
-
   # This class enables a DSL for creating a contract for the initializer
   class Contract
     RESERVED_KEYS = %i[call initialize context].freeze
