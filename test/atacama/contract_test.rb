@@ -4,7 +4,7 @@ require 'test_helper'
 
 class ContractTestClass < Atacama::Contract
   option :params, type: Types::Strict::Hash
-
+  returns Types::Strict::Symbol
   def call
     :success
   end
@@ -82,6 +82,12 @@ describe Atacama::Contract do
     seed = { foo: 'bar' }
     instance = ContractTestClass.inject(params: seed).new
     assert_equal seed, instance.params
+  end
+
+  it 'copies related attributes on injection' do
+    seed = { foo: 'bar' }
+    klass = ContractTestClass.inject(params: seed)
+    assert_equal ContractTestClass.return_type, klass.return_type
   end
 
   it 'throws if a parameter is of an invalid type' do

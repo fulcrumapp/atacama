@@ -79,8 +79,8 @@ module Atacama
       end
 
       def inject(injected)
-        Class.new(self) do
-          self.injected = injected
+        clone.tap do |clone|
+          clone.injected = injected
         end
       end
     end
@@ -95,6 +95,16 @@ module Atacama
       end
 
       Validator.call(options: self.class.options, context: @context)
+    end
+
+    # Pretty pretty printing.
+    def inspect
+      "#<#{self.class}:0x%x %s>" % [
+        object_id,
+        self.class.options.keys.map do |option|
+          "#{option}: #{context.send(option).inspect}"
+        end.join(' ')
+      ]
     end
 
     def call

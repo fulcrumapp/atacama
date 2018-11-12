@@ -23,6 +23,8 @@ end
 class TransactionTestClass < Atacama::Transaction
   option :sentence, type: Types::Strict::String
 
+  returns_option :sentence, Types::Strict::String
+
   Joiner = proc do
     Option(sentence: context.words.join(' '))
   end
@@ -32,8 +34,6 @@ class TransactionTestClass < Atacama::Transaction
     step :reverser
     step :joiner, with: Joiner
   end
-
-  step :finally, with: -> { Return(context.sentence) }
 
   private
 

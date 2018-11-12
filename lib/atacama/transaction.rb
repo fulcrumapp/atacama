@@ -15,6 +15,19 @@ module Atacama
     end
 
     class << self
+      attr_reader :return_option
+
+      def returns_option(key, type)
+        @return_option = key
+
+        returns(
+          Types.Instance(Result).constructor do |options|
+            type[options.value]
+            options
+          end
+        )
+      end
+
       # @returns [Array<Atacama::Transaction::Definition>]
       def steps
         @steps ||= []
@@ -32,26 +45,21 @@ module Atacama
     def initialize(context: {}, steps: {})
       super(context: context)
       @overrides = steps
+      @return_value = nil
     end
 
     def call
-      value = begin
-        execute(self.class.steps)
-      rescue HaltExecution => exception
-        exception.value
-      end
-
-      raise MissingReturn, "Return value from #{self.class} missing, received: #{value.inspect}" unless value.is_a? Values::Return
-
-      Result.call(value: value.value, transaction: context)
+      execute(self.class.steps)
+      Result.call(value: return_value, transaction: context)
     end
 
     private
 
     def execute(steps)
       steps.each do |step|
+        break if @return_value
         evaluate(step).tap do |result|
-          raise HaltExecution.new(result) if result.is_a? Values::Return
+          @return_value = result.value if result.is_a? Values::Return
           context.merge!(result.value) if result.is_a? Values::Option
         end
       end
@@ -93,6 +101,12 @@ module Atacama
       step.with.new(context: context) \
           .call { execute(step.yielding.steps) }
           .tap { |result| step.with.validate_return(result) }
+    end
+
+    def return_value
+      @return_value ||
+        (self.class.return_option && context[self.class.return_option]) ||
+        nil
     end
   end
 end
