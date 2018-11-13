@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    atacama (0.1.8)
+    atacama (0.1.9)
       dry-types (~> 0.13.2)
 
 GEM

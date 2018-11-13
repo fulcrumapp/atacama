@@ -17,7 +17,7 @@ module Atacama
         if value_object.is_a? Values::Option
           map.each do |key, type|
             Atacama.check(type, value_object.value[key]) do |e|
-              raise OptionTypeMismatchError, "Invalid Option value type: #{e.message}"
+              raise OptionTypeMismatchError, "#{self} Invalid Option value type: #{e.message}"
             end
           end
         end
@@ -36,7 +36,7 @@ module Atacama
       Instance(Values::Return).constructor do |value_object|
         if value_object.is_a?(Values::Return)
           Atacama.check(type, value_object.value) do |e|
-            raise ReturnTypeMismatchError, "Invalid Return Value type: #{e.message}"
+            raise ReturnTypeMismatchError, "#{self} Invalid Return Value type: #{e.message}"
           end
         end
 

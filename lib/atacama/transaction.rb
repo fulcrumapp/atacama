@@ -2,7 +2,6 @@
 
 require 'atacama/contract'
 require 'atacama/values'
-require 'atacama/transaction/halt_execution'
 require 'atacama/transaction/definition'
 
 module Atacama
