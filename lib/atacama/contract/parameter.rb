@@ -9,13 +9,5 @@ module Atacama
       @name = name
       @type = type
     end
-
-    # Determine the validity of a value for an optionally given type. Raises a
-    # type error on failure.
-    #
-    # @raise [Dry::Types::ConstraintError]
-    def validate!(value)
-      type[value] && nil unless type.nil?
-    end
   end
 end

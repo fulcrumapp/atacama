@@ -9,10 +9,13 @@ module Atacama
   ReturnTypeMismatchError = Class.new(StandardError)
   ResultTypeMismatchError = Class.new(StandardError)
 
+  # Execute a type check, catch and yield if theres an error.
+  #
+  # @yields [Exception] the caught type error
   def self.check(type, value)
     type && type[value]
     nil
-  rescue Dry::Types::ConstraintError => e
-    yield e
+  rescue Dry::Types::ConstraintError => exception
+    yield exception
   end
 end

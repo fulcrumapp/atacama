@@ -25,9 +25,7 @@ module Atacama
 
     def detect_invalid_types!
       options.each do |key, parameter|
-        begin
-          parameter.validate! context[key]
-        rescue Dry::Types::ConstraintError => e
+        Atacama.check(parameter.type, context[key]) do |e|
           raise OptionTypeMismatchError, %(#{klass} option :#{key} invalid: #{e.message})
         end
       end

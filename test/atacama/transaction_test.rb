@@ -42,8 +42,7 @@ class TransactionTestClass < Atacama::Transaction
   end
 end
 
-class SubclassedTransactionTest < TransactionTestClass
-end
+class SubclassedTransactionTest < TransactionTestClass; end
 
 class TransactionClassWithInvalidReturn < Atacama::Transaction
   class InvalidTypeStep < Atacama::Step
