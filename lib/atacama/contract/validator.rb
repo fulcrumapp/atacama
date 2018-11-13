@@ -25,8 +25,11 @@ module Atacama
 
     def detect_invalid_types!
       options.each do |key, parameter|
-        Atacama.check parameter.type, context[key] do |e|
-          raise OptionTypeMismatchError, %(#{klass} option :#{key} invalid: #{e.message})
+        value = context[key]
+        Atacama.check parameter.type, value do |e|
+          raise OptionTypeMismatchError, Atacama.format_exception(klass, e,
+            "The value #{value.inspect} for #{key.inspect} is the incorrect type"
+          )
         end
       end
     end

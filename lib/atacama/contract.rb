@@ -91,7 +91,9 @@ module Atacama
       # @param value [Any] the object to type check
       def validate_return(value)
         Atacama.check(return_type, value) do |e|
-          raise ReturnTypeMismatchError, "#{self} return value invalid: #{e.message}"
+          raise ReturnTypeMismatchError, Atacama.format_exception(self, e,
+            'The return value was an incorrect type.',
+          )
         end
       end
 

@@ -16,8 +16,11 @@ module Atacama
       Instance(Values::Option).constructor do |value_object|
         if value_object.is_a? Values::Option
           map.each do |key, type|
-            Atacama.check(type, value_object.value[key]) do |e|
-              raise OptionTypeMismatchError, "#{self} Invalid Option value type: #{e.message}"
+            value = value_object.value[key]
+            Atacama.check(type, value) do |e|
+              raise OptionTypeMismatchError, Atacama.format_exception(self, e,
+                "The Option() #{key.inspect} value #{value.inspect} is the incorrect type."
+              )
             end
           end
         end
@@ -36,7 +39,9 @@ module Atacama
       Instance(Values::Return).constructor do |value_object|
         if value_object.is_a?(Values::Return)
           Atacama.check(type, value_object.value) do |e|
-            raise ReturnTypeMismatchError, "#{self} Invalid Return Value type: #{e.message}"
+            raise ReturnTypeMismatchError, Atacama.format_exception(self, e,
+              "The Return() value #{value_object.value.inspect} does not match the declared type."
+            )
           end
         end
 

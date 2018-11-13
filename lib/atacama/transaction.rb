@@ -35,7 +35,9 @@ module Atacama
         returns(
           Types.Instance(Result).constructor do |options|
             Atacama.check(type, options.value) do |e|
-              raise ResultTypeMismatchError, "Invalid Result value for #{self}: #{e.message}"
+              raise ResultTypeMismatchError, Atacama.format_exception(self, e,
+                "Option(#{key.inspect}) returned from the Transaction was the incorrect type.",
+              )
             end
 
             options
