@@ -38,7 +38,6 @@ describe Atacama::Contract do
     end
   end
 
-
   describe 'custom types' do
     it 'raises an error for the structure does not match the option names' do
       type = Atacama::Types.Option(name: Atacama::Types::Strict::String)
@@ -95,24 +94,32 @@ describe Atacama::Contract do
   end
 
   it 'throws if a parameter is missing' do
-    assert_raises(Atacama::ArgumentError) { ContractTestClass.call }
-  end
-
-  it 'allows creating callables with default options' do
-    seed = { foo: 'bar' }
-    instance = ContractTestClass.inject(params: seed).new
-    assert_equal seed, instance.params
-  end
-
-  it 'copies related attributes on injection' do
-    seed = { foo: 'bar' }
-    klass = ContractTestClass.inject(params: seed)
-    assert_equal ContractTestClass.return_type, klass.return_type
+    assert_raises(Atacama::OptionTypeMismatchError) { ContractTestClass.call }
   end
 
   it 'throws if a parameter is of an invalid type' do
-    assert_raises(Atacama::TypeError) do
+    assert_raises(Atacama::OptionTypeMismatchError) do
       ContractTestClass.call(params: [])
+    end
+  end
+
+  describe 'inject' do
+    it 'allows creating callables with default options' do
+      seed = { foo: 'bar' }
+      instance = ContractTestClass.inject(params: seed).new
+      assert_equal seed, instance.params
+    end
+
+    it 'copies related attributes on injection' do
+      seed = { foo: 'bar' }
+      klass = ContractTestClass.inject(params: seed)
+      assert_equal ContractTestClass.return_type, klass.return_type
+    end
+
+    it 'validates the injected values are of the correct type' do
+      assert_raises Atacama::OptionTypeMismatchError do
+        ContractSubclassTest.inject(params: 'foo')
+      end
     end
   end
 end

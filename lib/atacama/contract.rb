@@ -52,9 +52,7 @@ module Atacama
       #
       # @return The value of the #call instance method.
       def call(context = {}, &block)
-        new(context: context).call(&block).tap do |result|
-          validate_return(result)
-        end
+        new(context: context).call(&block).tap { |result| validate_return(result) }
       end
 
       # Inject dependencies statically in to the Contract object. Allows for easier
@@ -67,6 +65,12 @@ module Atacama
       #
       # @return [Class] a new class object that contains the injection
       def inject(injected)
+        Validator.call({
+          options: Hash[injected.keys.zip(options.values_at(*injected.keys))],
+          context: Context.new(injected),
+          klass: self
+        })
+
         Class.new(self) do
           self.injected = injected
         end
@@ -86,9 +90,9 @@ module Atacama
       #
       # @param value [Any] the object to type check
       def validate_return(value)
-        return_type && return_type[value]
+        return_type && return_type[value] && nil
       rescue Dry::Types::ConstraintError => e
-        raise ReturnTypeMismatchError, e.message
+        raise ReturnTypeMismatchError, "#{self} return value invalid: #{e.message}"
       end
 
       # The defined options on the contract.
@@ -132,7 +136,7 @@ module Atacama
         ctx.merge!(context.is_a?(Context) ? context.to_h : context)
       end
 
-      Validator.call(options: self.class.options, context: @context)
+      Validator.call(options: self.class.options, context: @context, klass: self.class)
     end
 
     # @private
@@ -140,7 +144,7 @@ module Atacama
       "#<#{self.class}:0x%x %s>" % [
         object_id,
         self.class.options.keys.map do |option|
-          "#{option}: #{context.send(option).inspect}"
+          "#{option}: #{context.send(option).inspect[0..20]}"
         end.join(' ')
       ]
     end

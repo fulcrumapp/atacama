@@ -60,7 +60,7 @@ Style/BracesAroundHashParameters:
 Metrics/BlockLength:
   Enabled: true
   Exclude:
-    - '*_test.rb'
+    - '**/*_test.rb'
 
 Layout/MultilineMethodCallIndentation:
   Enabled: false

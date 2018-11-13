@@ -9,9 +9,10 @@ module Atacama
 
     # @param options [Hash] options schema
     # @param context [Atacama::Context] keyword arguments to validate
-    def initialize(options:, context:)
+    def initialize(options:, context:, klass:)
       @options = options
       @context = context
+      @klass = klass
     end
 
     def call
@@ -20,12 +21,15 @@ module Atacama
 
     private
 
-    attr_reader :options, :context
+    attr_reader :options, :context, :klass
 
     def detect_invalid_types!
-      options.each do |(key, parameter)|
-        raise ArgumentError, "option not found: #{key}" unless context.key?(key)
-        parameter.valid? context[key]
+      options.each do |key, parameter|
+        begin
+          parameter.validate! context[key]
+        rescue Dry::Types::ConstraintError => e
+          raise OptionTypeMismatchError, %(#{klass} option :#{key} invalid: #{e.message})
+        end
       end
     end
   end

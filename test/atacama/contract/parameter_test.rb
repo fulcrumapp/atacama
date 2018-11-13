@@ -11,15 +11,15 @@ describe Atacama::Parameter do
 
   it 'supports type checking without a defined type' do
     param = Atacama::Parameter.new(name: :test)
-    assert param.valid?(:test)
+    assert_nil param.validate!(:test)
   end
 
   it 'raises an exception if the type specified is not present' do
     type = Atacama::Contract::Types::Strict::String
     param = Atacama::Parameter.new(name: :test, type: type)
 
-    assert_raises(Atacama::TypeError) { param.valid?(true) }
+    assert_raises(Dry::Types::ConstraintError) { param.validate!(true) }
 
-    assert param.valid?('Hello')
+    assert_nil param.validate!('Hello')
   end
 end

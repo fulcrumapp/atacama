@@ -7,6 +7,7 @@ require 'atacama/step'
 module Atacama
   ArgumentError = Class.new(StandardError)
   TypeError = Class.new(StandardError)
-  MissingReturn = Class.new(StandardError)
+
+  OptionTypeMismatchError = Class.new(StandardError)
   ReturnTypeMismatchError = Class.new(StandardError)
 end
