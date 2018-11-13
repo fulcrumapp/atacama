@@ -38,7 +38,7 @@ module Atacama
             begin
               type[options.value] if type
             rescue Dry::Types::ConstraintError => e
-              raise "Invalid Result value for #{self}: #{e.message}"
+              raise ResultTypeMismatchError, "Invalid Result value for #{self}: #{e.message}"
             end
 
             options

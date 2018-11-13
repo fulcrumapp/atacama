@@ -5,9 +5,7 @@ require 'atacama/transaction'
 require 'atacama/step'
 
 module Atacama
-  ArgumentError = Class.new(StandardError)
-  TypeError = Class.new(StandardError)
-
   OptionTypeMismatchError = Class.new(StandardError)
   ReturnTypeMismatchError = Class.new(StandardError)
+  ResultTypeMismatchError = Class.new(StandardError)
 end

@@ -70,6 +70,17 @@ describe Atacama::Transaction do
     end
   end
 
+  describe 'result types' do
+    it 'raises an exception if the result is not valid' do
+      assert_raises Atacama::ResultTypeMismatchError do
+        TransactionTestClass.return_type[Atacama::Transaction::Result.call({
+          transaction: Atacama::Context.new,
+          value: :invalid
+        })]
+      end
+    end
+  end
+
   describe 'subclassing' do
     it 'allows subclassing of class state' do
       refute_nil SubclassedTransactionTest.return_type
