@@ -1,0 +1,84 @@
+AllCops:
+  TargetRubyVersion: 2.2
+  # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
+  # to ignore them, so only the ones explicitly set in this file are enabled.
+  Exclude:
+    - '**/bin/*'
+    - '**/db/**/*'
+    - '**/vendor/**/*'
+    - '**/node_modules/**/*'
+    - '**/*.gemspec'
+
+Bundler/OrderedGems:
+  Enabled: true
+
+Layout/IndentArray:
+  EnforcedStyle: consistent
+
+Metrics/CyclomaticComplexity:
+  Max: 10
+
+Metrics/LineLength:
+  Max: 100
+
+Metrics/ClassLength:
+  Max: 100
+  Exclude:
+    - '*/test/**/*'
+    - '*_test.rb'
+
+Metrics/MethodLength:
+  Max: 20
+
+Style/Documentation:
+  Enabled: false
+
+Style/Lambda:
+  Enabled: false
+
+Style/ParallelAssignment:
+  Enabled: false
+
+Style/DocumentationMethod:
+  Enabled: false
+
+Style/TrailingCommaInArrayLiteral:
+  Enabled: false
+
+Style/TrailingCommaInHashLiteral:
+  Enabled: false
+
+Style/ClassAndModuleChildren:
+  Enabled: true
+  Exclude:
+    - '**/test/**/*'
+    - 'cli/*'
+
+Style/BracesAroundHashParameters:
+  Enabled: false
+
+Metrics/BlockLength:
+  Enabled: true
+  Exclude:
+    - '*_test.rb'
+
+Layout/MultilineMethodCallIndentation:
+  Enabled: false
+
+Style/RescueModifier:
+  Enabled: false
+
+Style/GlobalVars:
+  Enabled: false
+
+Layout/IndentHash:
+  Enabled: false
+
+Naming/MethodName:
+  Enabled: false
+
+Lint/AssignmentInCondition:
+  Enabled: false
+
+Style/DoubleNegation:
+  Enabled: false

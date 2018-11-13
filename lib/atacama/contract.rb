@@ -8,63 +8,123 @@ require 'atacama/contract/context'
 module Atacama
   # This class enables a DSL for creating a contract for the initializer
   class Contract
+    # @private
     RESERVED_KEYS = %i[call initialize context].freeze
 
+    # Namespace alias for easier reading when defining types.
     Types = Atacama::Types
 
+    # @private
     NameInterface = Types::Strict::Symbol.constrained(excluded_from: RESERVED_KEYS)
+
+    # @private
     ContextInterface = Types::Strict::Hash | Types.Instance(Context)
 
     class << self
-      def injected=(hash)
-        @injected = Types::Strict::Hash[hash]
-      end
-
-      def injected
-        # Silences the VM warning about accessing uninitalized ivar
-        defined?(@injected) ? @injected : {}
-      end
-
-      def options
-        @options ||= {}
-      end
-
-      def returns(type)
-        @returns = type
-      end
-
-      def return_type
-        defined?(@returns) && @returns
-      end
-
-      def validate_return(value)
-        return_type && return_type[value]
-      end
-
       # Define an initializer value.
-      # @param [Symbol] name of the argument
-      def option(name, **kwargs)
-        options[NameInterface[name]] = Parameter.new(name: name, **kwargs)
+      #
+      # @example Set an option
+      #   option :model. type: Types.Instance(User)
+      #
+      # @param name [Symbol] name of the argument
+      # @param type [Dry::Type?] the type object to optionally check
+      def option(name, type: nil)
+        options[NameInterface[name]] = Parameter.new(name: name, type: type)
 
         define_method(name) { @context[name] }
         define_method("#{name}?") { !!@context[name] }
       end
 
+      # Set the return type for the contract. This is only validated automatically
+      # through the #call class method.
+      #
+      # @param type [Dry::Type?] the type object to optionally check
+      def returns(type) # rubocop:disable Style/TrivialAccessors
+        @returns = type
+      end
+
+      # The main interface to executing contracts. Given a set of options it
+      # will check the parameter types as well as return types, if defined.
+      #
+      # @param arguments [Hash] keyword arguments that match the defined options
+      #
+      # @yield the block is evaluated in the context of the instance call method
+      #
+      # @return The value of the #call instance method.
       def call(context = {}, &block)
         new(context: context).call(&block).tap do |result|
           validate_return(result)
         end
       end
 
+      # Inject dependencies statically in to the Contract object. Allows for easier
+      # composition of contracts when used in a Transaction.
+      #
+      # @example
+      #   SampleClass.inject(user: User.new).call(attributes: { name: "Cindy" })
+      #
+      # @param injected [Hash] the options to inject in to the initializer
+      #
+      # @return [Class] a new class object that contains the injection
       def inject(injected)
-        clone.tap do |clone|
-          clone.injected = injected
+        Class.new(self) do
+          self.injected = injected
         end
+      end
+
+      # The defined return type on the Contract.
+      #
+      # @return [Dry::Type?] the type object to optionally check
+      def return_type
+        defined?(@returns) && @returns
+      end
+
+      # Execute type checking on a value for the defined return value. Useful
+      # when executing `new` on these objects.
+      #
+      # @raise [Dry::Types::ConstraintError] a type check failure
+      #
+      # @param value [Any] the object to type check
+      def validate_return(value)
+        return_type && return_type[value]
+      rescue Dry::Types::ConstraintError => e
+        raise ReturnTypeMismatchError, e.message
+      end
+
+      # The defined options on the contract.
+      #
+      # @return [Hash<String, Atacama::Parameter>]
+      def options
+        @options ||= {}
+      end
+
+      # Executed by the Ruby VM at subclass time. Ensure that all internal state
+      # is copied to the new subclass.
+      def inherited(subclass)
+        subclass.returns(return_type)
+
+        options.each do |name, parameter|
+          subclass.option(name, type: parameter.type)
+        end
+      end
+
+      # @private
+      def injected=(hash)
+        @injected = Types::Strict::Hash[hash]
+      end
+
+      # @private
+      def injected
+        # Silences the VM warning about accessing uninitalized ivar
+        defined?(@injected) ? @injected : {}
       end
     end
 
     attr_reader :context
 
+    # @raise [Dry::Types::ConstraintError] a type check failure
+    #
+    # @param context [Hash] the values to satisfy the option definition
     def initialize(context: {}, **)
       ContextInterface[context] # Validate the type
 
@@ -75,7 +135,7 @@ module Atacama
       Validator.call(options: self.class.options, context: @context)
     end
 
-    # Pretty pretty printing.
+    # @private
     def inspect
       "#<#{self.class}:0x%x %s>" % [
         object_id,
@@ -85,6 +145,9 @@ module Atacama
       ]
     end
 
+    # @abstract
+    # The default entrypoint for all Contracts. This is executed and
+    # type checked when called from the Class#call.
     def call
       self
     end

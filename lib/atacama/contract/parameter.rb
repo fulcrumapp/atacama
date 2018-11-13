@@ -12,7 +12,9 @@ module Atacama
 
     # Determine the validity of a value for an optionally given type. Raises a
     # type error on failure.
+    #
     # @raise [Atacama::TypeError]
+    #
     # @returns Boolean
     def valid?(value)
       return true if type.nil?

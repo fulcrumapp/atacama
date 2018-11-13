@@ -9,6 +9,7 @@ module Atacama
   class Transaction < Contract
     include Values::Methods
 
+    # The return value of all Transactions.
     class Result < Contract
       option :value, type: Types::Any
       option :transaction, type: Types.Instance(Context)
@@ -17,28 +18,59 @@ module Atacama
     class << self
       attr_reader :return_option
 
-      def returns_option(key, type)
+      def inherited(subclass)
+        super(subclass)
+        subclass.returns_option return_option, return_type
+        steps.each do |step|
+          subclass.step(step.name, with: step.with, yielding: step.yielding)
+        end
+      end
+
+      # Return the value of a given Option in the pipeline.
+      #
+      # @param key [Symbol] the option to read
+      # @param type [Dry::Type?] the type object to optionally check
+      def returns_option(key, type = nil)
         @return_option = key
 
         returns(
           Types.Instance(Result).constructor do |options|
-            type[options.value]
+            type[options.value] if type
             options
           end
         )
       end
 
-      # @returns [Array<Atacama::Transaction::Definition>]
-      def steps
-        @steps ||= []
+      # Add a step to the processing queue.
+      #
+      # @example
+      #   step :extract, with: UserParamsExtractor
+      #
+      # @example a yielding step
+      #   step :wrap, with: Wrapper do
+      #     step :extract, with: UserParamsExtractor
+      #   end
+      #
+      # @param name [Symbol] a unique name for a step
+      # @param with [Contract, Proc, nil] the callable to execute
+      #
+      # @yield The captured block allows defining of child steps. The wrapper must implement yield.
+      def step(name, with: nil, yielding: nil, &block)
+        add_step({
+          name: name,
+          with: with,
+          yielding: yielding || block_given? ? Class.new(self, &block) : nil
+        })
       end
 
-      # Add a step to the processing queue.
-      # @param name [Symbol] a unique name for a step
-      def step(name, **kwargs, &block)
-        kwargs[:yielding] = block_given? ? Class.new(self, &block) : nil
-        kwargs[:with] ||= nil
-        steps.push Definition.call(name: name, **kwargs)
+      # @private
+      def add_step(params)
+        steps.push(Definition.call(params))
+      end
+
+      # @private
+      def steps
+        @steps ||= []
       end
     end
 
@@ -48,6 +80,9 @@ module Atacama
       @return_value = nil
     end
 
+    # Trigger execution of the Transaction pipeline.
+    #
+    # @return [Atacama::Transaction::Result] final result with value
     def call
       execute(self.class.steps)
       Result.call(value: return_value, transaction: context)

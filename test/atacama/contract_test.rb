@@ -10,6 +10,12 @@ class ContractTestClass < Atacama::Contract
   end
 end
 
+class ContractSubclassTest < ContractTestClass
+  def call
+    "Success"
+  end
+end
+
 class FailingContractReturnTypeTestClass < Atacama::Contract
   returns Types::Strict::Symbol
 
@@ -19,6 +25,20 @@ class FailingContractReturnTypeTestClass < Atacama::Contract
 end
 
 describe Atacama::Contract do
+  describe 'subclassing' do
+    it 'copies the return and option specs' do
+      assert_equal ContractTestClass.return_type, ContractSubclassTest.return_type
+      assert_equal ContractTestClass.options.keys, ContractSubclassTest.options.keys
+    end
+
+    it 'raises a type error as expected' do
+      assert_raises Atacama::ReturnTypeMismatchError do
+        ContractSubclassTest.call(params: {})
+      end
+    end
+  end
+
+
   describe 'custom types' do
     it 'raises an error for the structure does not match the option names' do
       type = Atacama::Types.Option(name: Atacama::Types::Strict::String)
@@ -50,7 +70,7 @@ describe Atacama::Contract do
   end
 
   it 'explicitly checks the return type' do
-    assert_raises Dry::Types::ConstraintError do
+    assert_raises Atacama::ReturnTypeMismatchError do
       FailingContractReturnTypeTestClass.call
     end
   end

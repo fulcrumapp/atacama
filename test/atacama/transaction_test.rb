@@ -42,6 +42,9 @@ class TransactionTestClass < Atacama::Transaction
   end
 end
 
+class SubclassedTransactionTest < TransactionTestClass
+end
+
 class TransactionClassWithInvalidReturn < Atacama::Transaction
   class InvalidTypeStep < Atacama::Step
     returns Types::Strict::String
@@ -67,9 +70,18 @@ describe Atacama::Transaction do
     end
   end
 
+  describe 'subclassing' do
+    it 'allows subclassing of class state' do
+      refute_nil SubclassedTransactionTest.return_type
+      assert_equal TransactionTestClass.options.keys, SubclassedTransactionTest.options.keys
+      assert_equal TransactionTestClass.return_option, SubclassedTransactionTest.return_option
+      assert_equal TransactionTestClass.steps.map(&:name), SubclassedTransactionTest.steps.map(&:name)
+    end
+  end
+
   describe 'execution' do
     it 'fails with a type error if the declared return value is not met' do
-      assert_raises Dry::Types::ConstraintError do
+      assert_raises Atacama::ReturnTypeMismatchError do
         TransactionClassWithInvalidReturn.call
       end
     end
