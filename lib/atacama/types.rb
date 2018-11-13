@@ -13,12 +13,16 @@ module Atacama
     #
     # @return [Dry::Type]
     def self.Option(**map)
-      Instance(Values::Option).constructor do |options|
-        if options.is_a? Values::Option
-          map.each { |key, type| type[options.value[key]] }
+      Instance(Values::Option).constructor do |value_object|
+        if value_object.is_a? Values::Option
+          map.each do |key, type|
+            Atacama.check(type, value_object.value[key]) do |e|
+              raise OptionTypeMismatchError, "Invalid Option value type: #{e.message}"
+            end
+          end
         end
 
-        options
+        value_object
       end
     end
 
@@ -29,9 +33,14 @@ module Atacama
     #
     # @return [Dry::Type]
     def self.Return(type)
-      Instance(Values::Return).constructor do |options|
-        type[options.value] if options.is_a? Values::Return
-        options
+      Instance(Values::Return).constructor do |value_object|
+        if value_object.is_a?(Values::Return)
+          Atacama.check(type, value_object.value) do |e|
+            raise ReturnTypeMismatchError, "Invalid Return Value type: #{e.message}"
+          end
+        end
+
+        value_object
       end
     end
   end

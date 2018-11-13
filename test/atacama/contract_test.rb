@@ -41,7 +41,7 @@ describe Atacama::Contract do
   describe 'custom types' do
     it 'raises an error for the structure does not match the option names' do
       type = Atacama::Types.Option(name: Atacama::Types::Strict::String)
-      assert_raises Dry::Types::ConstraintError do
+      assert_raises Atacama::OptionTypeMismatchError do
         value = Atacama::Values::Option.call(value: { name: 1 })
         type[value]
       end
@@ -55,7 +55,7 @@ describe Atacama::Contract do
 
     it 'raises an error if the Return value is not correct' do
       type = Atacama::Types.Return(Atacama::Types::Strict::String)
-      assert_raises Dry::Types::ConstraintError do
+      assert_raises Atacama::ReturnTypeMismatchError do
         value = Atacama::Values::Return.call(value: 1)
         type[value]
       end

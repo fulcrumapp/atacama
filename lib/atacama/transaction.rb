@@ -35,9 +35,7 @@ module Atacama
 
         returns(
           Types.Instance(Result).constructor do |options|
-            begin
-              type[options.value] if type
-            rescue Dry::Types::ConstraintError => e
+            Atacama.check(type, options.value) do |e|
               raise ResultTypeMismatchError, "Invalid Result value for #{self}: #{e.message}"
             end
 

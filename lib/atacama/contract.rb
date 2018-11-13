@@ -90,9 +90,9 @@ module Atacama
       #
       # @param value [Any] the object to type check
       def validate_return(value)
-        return_type && return_type[value] && nil
-      rescue Dry::Types::ConstraintError => e
-        raise ReturnTypeMismatchError, "#{self} return value invalid: #{e.message}"
+        Atacama.check(return_type, value) do |e|
+          raise ReturnTypeMismatchError, "#{self} return value invalid: #{e.message}"
+        end
       end
 
       # The defined options on the contract.
