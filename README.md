@@ -43,8 +43,13 @@ end
 UserFetcher.call(id: 1)
 ```
 
-With the use of two classes, we can compose together multiple Contracts to yield a pipeline
-of changes to execute.
+With the use of two classes, we can compose together multiple Contracts to yield a pipeline of changes to execute.
+
+Steps contain two flow control objects:
+* `Option(key: value)` which informs the Transformer to take this value and yield it to the subsequent steps in the chain.
+* `Return(value)` halts execution and early returns from the pipeline. Useful for things like validation and error handling.
+
+The `Transformer` always returns a value object.
 
 ```ruby
 class UserFetcher < Atacama::Step
