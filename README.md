@@ -30,7 +30,7 @@ Or install it yourself as:
 
 The basic object is `Contract`. It enforces type contracts by utilizing `dry-types`.
 
-```
+```ruby
 class UserFetcher < Atacama::Contract
   option :id, Types::Strict::Number.gt(0)
   returns Types.Instance(User)
@@ -46,16 +46,22 @@ UserFetcher.call(id: 1)
 With the use of two classes, we can compose together multiple Contracts to yield a pipeline
 of changes to execute.
 
-```
+```ruby
 class UserFetcher < Atacama::Step
   option :id, type: Types::Strict::Number.gt(0)
   returns Types.Option(model: Types.Instance(User))
 
+  # Both #Option and #Return are flow control values that tell the transaction what is a
+  # value object and what should halt execution and return.
   def call
-    Option(model: User.find(id))
+    Option(model: User.find!(id))
+  rescue ActiveRecord::RecordNotFound
+    Return(Error.new('Not found'))
   end
 end
 
+# Around steps allow for yielding to child steps for things like instrumentation or
+# ActiveRecord::Transactions.
 class Duration < Atacama::Step
   def call
     start = Time.now
@@ -64,11 +70,19 @@ class Duration < Atacama::Step
   end
 end
 
+# The transaction class descends the queue of steps, yielding options to each step
+# defined.
+#
+# Steps can be defined with:
+#   * Procs
+#   * Class references
+#   * Instance methods
+#
 class UpdateUser < Atacama::Transformer
-  option :model, type: Types.Instance(User)
+  option :id, type: Types::Strict::Number.gt(0)
   option :attributes, type: Types::Strict::Hash
 
-  returns_option :model, Types.Instance(User)
+  returns_option :model, Types.Instance(User) | Types.Instance(Error)
 
   step :duration, with: Duration do
     step :find, with: UserFetcher
@@ -90,12 +104,45 @@ UpdateUser.call(id: 1, attributes: {
 Any step can be mocked out without the need for a third party library. Just pass any object that
 responds to `#call` in the class initializer.
 
-```
+```ruby
 UpdateUser.new(steps: {
-  save: lambda do |**|
+  save: lambda do
     puts "skipping save"
   end
 })
+```
+
+Sometimes you need to compose these objects together and inject dependencies. Those injected values
+will be passed in to the object when it's later invoked with `#call`.
+
+```ruby
+UpdateUser.inject(id: 1).call(attributes: { email: 'hello@world.com' })
+```
+
+Injected contracts can then be used inside of a Contract. Useful for Polymorphic objects.
+
+```ruby
+class HistoryCreate < Atacama::Step
+  option :history_class, type: Types::Strict::Class
+  option :model, type: Types.Instance(ActiveRecord::Base)
+
+  def call
+    history_class.from_model(model)
+  end
+end
+
+class UpdateUser < Atacama::Transformer
+  option :id, type: Types::Strict::Number.gt(0)
+  option :attributes, type: Types::Strict::Hash
+
+  returns_option :model, Types.Instance(User) | Types.Instance(Error)
+
+  step :duration, with: Duration do
+    step :find, with: UserFetcher
+    step :save, with: Saver
+    step :history, with: HistoryCreate.inject(history_class: UserHistory)
+  end
+end
 ```
 
 ## Development
