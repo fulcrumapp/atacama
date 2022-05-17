@@ -4,7 +4,7 @@ module Atacama
   # The type namespace to interact with DRY::Types
   # @see https://dry-rb.org/gems/dry-types/built-in-types/ dry-types Documentation
   module Types
-    include Dry::Types.module
+    include Dry.Types()
     Boolean = Types::True | Types::False
 
     # Defines a type which checks that the Option value contains a valid
